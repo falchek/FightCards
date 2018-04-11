@@ -27,7 +27,7 @@ public class Fight {
     public Fighter getOpponent(Fighter fighter) {
         if(this.hasFighter(fighter)){
             for(UUID id: fighters.keySet()){
-                if(id != fighter.getID()){
+                if(!id.equals(fighter.getID())){
                     return getFighterByID(id);
                 }
             }
@@ -49,4 +49,6 @@ public class Fight {
         }
         return outString;
     }
+
+
 }

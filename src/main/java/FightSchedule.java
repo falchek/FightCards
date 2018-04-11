@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class FightSchedule {
 
@@ -11,29 +8,48 @@ public class FightSchedule {
     private HashMap<String, List<Fighter>> parkToFightersMapping;
     private HashMap<Fighter, Integer> occurrencesByFighter;
     private int targetFightsCount;
+    private int targetFightsPerFighter;
 
     public FightSchedule(){
         generatedFights = new ArrayList<Fight>();
         locationsList = new ArrayList<String>();
     }
 
-
-    public void generateFights(List<Fighter> fighters, int fightsPerFighter) {
-        targetFightsCount = (fighters.size() / 2) * fightsPerFighter;
+    //main method - generates all of the cards.
+    public List<FightCard> generateFightCards(List<Fighter> fighters, int fightsPerFighter) {
+        targetFightsPerFighter = fightsPerFighter;
+        targetFightsCount = fighters.size() * fightsPerFighter / 2;
+//        targetFightsCount = (int) Math.floor(fighters.size() / 2.0) * fightsPerFighter;
         registeredFighters = new ArrayList<Fighter>(fighters);
-
         occurrencesByFighter = generateOccurrencesByFighter();
         parkToFightersMapping = generateParkToFightersMapping(registeredFighters);
 
-        while(generatedFights.size() < targetFightsCount){
-            Fight fight = generateUniqueFight();
-            if (fight != null) {
-                generatedFights.add(fight);
-            }
-        }
-
+        generateFights();
+        List<FightCard> fightCards = createFightCardsFromGeneratedFights();
+        return fightCards;
     }
 
+    //generates the list of registered fights.
+    public void generateFights() {
+        //empty out generated fights.
+        while(generatedFights.size() < targetFightsCount) {
+            Fight fight = generateUniqueFight();
+            if (fight != null)
+            {
+                generatedFights.add(fight);
+                updateOccurrencesMapping();
+                System.out.println("Fights count" + generatedFights.size());
+                //sortAttempts = 0;
+            }
+            else if (fight == null) {
+                System.out.println("We're stuck");
+                attemptToSwapFight();
+            }
+        }
+        this.toString();
+    }
+
+    //puts the whole schedule to string.
     public String toString() {
         int fightNum = 0;
         String str = "";
@@ -50,6 +66,104 @@ public class FightSchedule {
         return str;
     }
 
+    private void attemptToSwapFight() {
+        //let's see what's wrong:
+        int fewestNumberOfFights = getFewestFightsPerFighter();
+        List<Fighter> fighterPool = getFightersWithFewestFights(fewestNumberOfFights);
+
+        if (fighterPool.size() == 1){
+            System.out.println("Odd number of fighters remaining, just give me someone new. ");
+
+            Fighter loneFighter = fighterPool.get(0);
+            List<Fighter> opponentsForLoneFighter = getListOfOpponentsForFighter(loneFighter);
+
+            Collections.shuffle(opponentsForLoneFighter);
+            Fighter candidateFighter = null;
+            for(Fighter candidate: registeredFighters) {
+                boolean loneFighterCanFightCandidate = opponentsForLoneFighter.indexOf(candidate) < 0;
+                if(loneFighterCanFightCandidate) {
+                    candidateFighter = candidate;
+                }
+            }
+
+            if(candidateFighter != null) {
+                Fight fight = new Fight(loneFighter, candidateFighter);
+                generatedFights.add(fight);
+                updateOccurrencesMapping();
+            }
+
+        }
+
+        if (fighterPool.size() == 2) {
+            System.out.println("Even number of fighters remaining, so we execute a swap for both fighters");
+            //get fighters that require swap
+            Fighter fighterA = fighterPool.get(0);
+            Fighter fighterB = fighterPool.get(1);
+
+            List<Fighter> opponentsForA = getListOfOpponentsForFighter(fighterA);
+            List<Fighter> opponentsForB = getListOfOpponentsForFighter(fighterB);
+
+            Collections.shuffle(opponentsForA);
+            Collections.shuffle(opponentsForB);
+
+            Fighter fighterForSwapFromA = null;
+            Fighter fighterForSwapFromB = null;
+
+            //Find an opponent of A that B has not fought.
+            for(Fighter opponent : opponentsForA) {
+                boolean bHasNotFoughtOpponent = !fighterPairHasFight(opponent, fighterB);
+                if(bHasNotFoughtOpponent) {
+                    fighterForSwapFromA = opponent;
+                }
+            }
+
+            //Find an opponent of B that A has not fought.
+            for(Fighter opponent : opponentsForB) {
+                boolean aHasNotFoughtOpponent = !fighterPairHasFight(opponent, fighterA);
+                if(aHasNotFoughtOpponent) {
+                    fighterForSwapFromB = opponent;
+                }
+            }
+
+            if(fighterForSwapFromA != null && fighterForSwapFromB != null) {
+//                Fight fightToDelete1 = getFightFromFighterPair(fighterForSwapFromB, fighterB);
+//                generatedFights.remove(fightToDelete1);
+//                Fight fightToDelete2 = getFightFromFighterPair(fighterForSwapFromA, fighterA);
+//                generatedFights.remove(fightToDelete2);
+
+                Fight newFight1 = new Fight(fighterForSwapFromA, fighterB);
+                generatedFights.add(newFight1);
+                //if(generatedFights.size() < targetFightsCount) {
+                    Fight newFight2 = new Fight(fighterForSwapFromB, fighterA);
+                    generatedFights.add(newFight2);
+                //}
+                updateOccurrencesMapping();
+                System.out.println("Successfully swapped these fighters");
+            }
+
+        }
+    }
+
+    private List<Fighter> getListOfOpponentsForFighter(Fighter fighter) {
+        List<Fighter> opponents = new ArrayList<Fighter>();
+        for(Fight fight : generatedFights){
+            if(fight.hasFighter(fighter)){
+                opponents.add(fight.getOpponent(fighter));
+            }
+        }
+        return opponents;
+    }
+
+    //returns whether or not a pair of fighters have a fight
+    private boolean fighterPairHasFight(Fighter a, Fighter b) {
+        for(Fight fight : generatedFights) {
+            if(fight.hasFighter(a) && fight.hasFighter(b)){
+                return true;
+            }
+        }
+        return false;
+    }
+
     private Fight generateUniqueFight() {
         int fewestNumberOfFights = getFewestFightsPerFighter();
         List<Fighter> fighterPool = getFightersWithFewestFights(fewestNumberOfFights);
@@ -59,46 +173,66 @@ public class FightSchedule {
         fighterPool.remove(randomFighter); //remove this fighter from the pool, so he can't select himself.
 
         String park = randomFighter.getLocation(); //TODO:  Weight by park.
+        String name = randomFighter.getName();
 
-        List<Fighter> validOpponents = getValidOpponentsForFighter(randomFighter, new ArrayList<Fighter>(fighterPool));
+        List<Fighter> validOpponents = getValidOpponentsForFighter(randomFighter, fighterPool);
         if(validOpponents.size() > 0) {
             Fighter randomOpponent = validOpponents.get(new Random().nextInt(validOpponents.size()));
-            updateOccurrencesMapping(randomFighter);
-            updateOccurrencesMapping(randomOpponent);
             return new Fight(randomFighter, randomOpponent);
         }
         return null;
     }
 
-    private void updateOccurrencesMapping(Fighter fighter) {
-        int occurrences = occurrencesByFighter.get(fighter);
-        occurrences++;
-        occurrencesByFighter.put(fighter, occurrences);
+    //updates the occurences mapping.  this is used to help generate unique fights
+    private void updateOccurrencesMapping() {
+        //reset mapping
+        occurrencesByFighter = generateOccurrencesByFighter();
+        for(Fighter fighter : occurrencesByFighter.keySet()){
+            int occurrences = 0;
+            for(Fight fight : generatedFights) {
+                if(fight.hasFighter(fighter)){
+                    occurrences++;
+                }
+            }
+            occurrencesByFighter.put(fighter, occurrences);
+        }
+        //int occurrences = occurrencesByFighter.get(fighter);
+        //occurrences++;
+        //occurrencesByFighter.put(fighter, occurrences);
     }
 
     //removes invalid opponents to prevent repetition
-    private List<Fighter> getValidOpponentsForFighter(Fighter fighter, List<Fighter> opponents){
+    private List<Fighter> getValidOpponentsForFighter(Fighter fighter, List<Fighter> fighterPool){
+        List<Fighter> validOpponents = new ArrayList<Fighter>(fighterPool);
+
+        //we've had this fighter before
         for(Fight fight : generatedFights) {
             if(fight.hasFighter(fighter)){
                 Fighter invalidOpponent = fight.getOpponent(fighter);
-                opponents.remove(invalidOpponent);
-            }
-        }
-        for(Fighter opponent : opponents) {
-            int numberOfFights = occurrencesByFighter.get(opponent);
-            if (numberOfFights >= targetFightsCount) {
-                opponents.remove(opponent);
+                validOpponents.remove(invalidOpponent);
+                //System.out.println("Check here");
             }
         }
 
-        return new ArrayList<Fighter>(opponents);
+        //This fighter currently has too many fights.  throws concurrent modification exception
+        List<Fighter> fightersAtMaxFights = new ArrayList<Fighter>();
+        for(Fighter opponent : validOpponents) {
+            int numberOfFights = occurrencesByFighter.get(opponent);
+            if (numberOfFights >= targetFightsPerFighter) { //>= //TODO: FIX
+                fightersAtMaxFights.add(opponent);
+            }
+        }
+        validOpponents.removeAll(fightersAtMaxFights);
+
+
+        return validOpponents;
     }
 
     //return a list of fighters with the fewest fights.
     private List<Fighter> getFightersWithFewestFights(int fightsCount) {
         List<Fighter> fightersWithFewestFights = new ArrayList<Fighter>();
         for(Fighter fighter : occurrencesByFighter.keySet()) {
-            if (occurrencesByFighter.get(fighter) <= fightsCount){
+            if (occurrencesByFighter.get(fighter) <= fightsCount){ // + 1){ //<= // < +1 works.
                 fightersWithFewestFights.add(fighter);
             }
         }
@@ -154,16 +288,26 @@ public class FightSchedule {
 
         return mapping;
     }
-    
-    public List<FightCard> generateFightCards() {
+
+
+    public List<FightCard> createFightCardsFromGeneratedFights() {
         List<FightCard> generatedFightCards = new ArrayList<FightCard>();
         for (Fighter fighter : registeredFighters) {
             FightCard fightCard = new FightCard(fighter);
             fightCard.setOpponents(generatedFights);
             generatedFightCards.add(fightCard);
         }
-
         return generatedFightCards;
+    }
+
+    //takes in two fighters, and returns that fight.
+    public Fight getFightFromFighterPair(Fighter a, Fighter b){
+        for(Fight fight : generatedFights) {
+            if (fight.hasFighter(a) && fight.hasFighter(b)) {
+                return fight;
+            }
+        }
+        return null;
     }
 
 }

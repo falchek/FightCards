@@ -2,13 +2,20 @@ import net.sf.jsefa.csv.annotation.CsvField;
 
 import java.util.UUID;
 
-public class Fighter {
+public class Fighter implements Cloneable{
 
     private UUID ID;
     @CsvField(pos = 1)
     private String name;
     @CsvField(pos = 2)
     private String location;
+
+    //copy constructor I guess.
+    public Fighter(Fighter fighter) {
+        this.ID = fighter.getID();
+        this.name = fighter.getName();
+        this.location = fighter.getLocation();
+    }
 
     public Fighter() {
         ID = UUID.randomUUID();
@@ -36,5 +43,10 @@ public class Fighter {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 }

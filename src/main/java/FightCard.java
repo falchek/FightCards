@@ -1,5 +1,7 @@
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class FightCard {
 
@@ -14,6 +16,10 @@ public class FightCard {
         return owner;
     }
 
+    public List<Fighter> getOpponents() {
+        return opponents;
+    }
+
     public void setOpponents (List<Fight> fights) {
         this.opponents = new ArrayList<Fighter>();
         for(Fight fight : fights) {
@@ -23,6 +29,16 @@ public class FightCard {
             }
 
         }
+    }
+
+    public boolean isAllFightsUnique(List<Fighter> input) {
+        Set tempSet = new HashSet();
+        for (Fighter fighter : input) {
+            if (!tempSet.add(fighter)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public String toString() {
@@ -36,6 +52,12 @@ public class FightCard {
         }
 
         str += "Number of Fights: " +opponents.size() + "\n";
+        if(isAllFightsUnique(opponents)){
+            str += "All opponents are unique";
+        }
+        else {
+            str += "Not Unique";
+        }
 
         return str;
     }
