@@ -1,8 +1,11 @@
+import com.lowagie.text.DocumentException;
+
+import java.io.IOException;
 import java.util.List;
 
 public class TestDriver {
 
-    public static final int FIGHTS_PER_FIGHTER = 10; // update to 10.
+    public static final int FIGHTS_PER_FIGHTER = 12; // update to 10.
 
     public static void main (String[] args){
 
@@ -27,6 +30,18 @@ public class TestDriver {
             else {
                 System.out.println("INVALID");
             }
+        }
+
+        FightCardPdfExport export = new FightCardPdfExport(fightCards);
+
+        try {
+            export.writeFightCards();
+
+
+        } catch (DocumentException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
     }
