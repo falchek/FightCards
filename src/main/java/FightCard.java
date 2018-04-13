@@ -7,6 +7,7 @@ public class FightCard {
 
     private Fighter owner;
     private List<Fighter> opponents;
+    private double differential;
 
     public FightCard(Fighter owner){
         this.owner = owner;
@@ -27,8 +28,8 @@ public class FightCard {
                 Fighter opponent = fight.getOpponent(owner);
                 this.opponents.add(opponent);
             }
-
         }
+        calculateDifferential();
     }
 
     public boolean isAllFightsUnique(List<Fighter> input) {
@@ -58,8 +59,23 @@ public class FightCard {
         else {
             str += "Not Unique";
         }
+        str += "Park differential: " + getDifferential();
 
         return str;
     }
 
+    public void calculateDifferential() {
+        int opponentsFromSamePark = 0;
+        for (Fighter fighter : opponents) {
+            if(fighter.getLocation().equals(owner.getLocation())){
+                opponentsFromSamePark++;
+            }
+        }
+
+        differential = (double)opponentsFromSamePark / (double)opponents.size();
+    }
+
+    public double getDifferential() {
+        return differential;
+    }
 }

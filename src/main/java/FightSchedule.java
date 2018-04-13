@@ -19,7 +19,6 @@ public class FightSchedule {
     public List<FightCard> generateFightCards(List<Fighter> fighters, int fightsPerFighter) {
         targetFightsPerFighter = fightsPerFighter;
         targetFightsCount = fighters.size() * fightsPerFighter / 2;
-//        targetFightsCount = (int) Math.floor(fighters.size() / 2.0) * fightsPerFighter;
         registeredFighters = new ArrayList<Fighter>(fighters);
         occurrencesByFighter = generateOccurrencesByFighter();
         parkToFightersMapping = generateParkToFightersMapping(registeredFighters);

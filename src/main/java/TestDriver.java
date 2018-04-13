@@ -21,7 +21,7 @@ public class TestDriver {
         List<FightCard> fightCards = schedule.generateFightCards(fighters, FIGHTS_PER_FIGHTER);
 
         System.out.println();
-
+        double cumulativeDifferential = 0;
         for(FightCard card : fightCards) {
             System.out.println(card.toString());
             if(validateFightCard(card, fightCards)){
@@ -30,7 +30,10 @@ public class TestDriver {
             else {
                 System.out.println("INVALID");
             }
+            cumulativeDifferential += card.getDifferential();
         }
+        double averageDifferential = cumulativeDifferential / (double) fightCards.size();
+        System.out.println("Cumulative differential " + averageDifferential);
 
         FightCardPdfExport export = new FightCardPdfExport(fightCards);
 
