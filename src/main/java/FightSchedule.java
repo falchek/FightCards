@@ -24,9 +24,86 @@ public class FightSchedule {
         parkToFightersMapping = generateParkToFightersMapping(registeredFighters);
 
         generateFights();
+
+        //boolean fightsCanBeRedistributedByPark = true;
+        while(redistributeFightsByPark());
+
         List<FightCard> fightCards = createFightCardsFromGeneratedFights();
         return fightCards;
     }
+
+    //after having a completed fights list, redistribute them to lower the park differentials as much as possible.
+    public boolean redistributeFightsByPark(){
+        //Identify breakable candidates;
+        List<Fight> fightsFromSamePark = new ArrayList<Fight>();
+        for(Fight fight : generatedFights){
+            if(fight.fightersFromSamePark()){
+                fightsFromSamePark.add(fight);
+            }
+        }
+
+        //For each candidate, try to find a breakable candidate that helps both of them out.
+        for(Fight fightFromSamePark : fightsFromSamePark) {
+            //get fighters who need a swap.
+            Fighter needsSwapA = fightFromSamePark.getFighters().get(0);
+            Fighter needsSwapB = fightFromSamePark.getOpponent(needsSwapA);
+            List<Fight> fightsToAdd = new ArrayList<Fight>();
+            List<Fight> fightsToRemove = new ArrayList<Fight>();
+
+
+            for (Fight fight : generatedFights) {
+                Fight newFight1 = null;
+                Fight newFight2 = null;
+                //candidateFightForSwap = null;
+                Fighter candidateSwapC = fight.getFighters().get(0);
+                Fighter candidateSwapD = fight.getOpponent(candidateSwapC);
+
+                //these items are swappable if the fighters don't have have a fighter already, and if they're not from the same park.
+                boolean swappableAandC = !fighterPairHasFight(needsSwapA, candidateSwapC)
+                        && !needsSwapA.getLocation().equals(candidateSwapC.getLocation());
+                boolean swappableBandD = !fighterPairHasFight(needsSwapB, candidateSwapD)
+                        && !needsSwapB.getLocation().equals(candidateSwapD.getLocation());
+                boolean swappableAandD = !fighterPairHasFight(needsSwapA, candidateSwapD)
+                        && !needsSwapA.getLocation().equals(candidateSwapD.getLocation());
+                boolean swappableBandC = !fighterPairHasFight(needsSwapB, candidateSwapC)
+                        && !needsSwapB.getLocation().equals(candidateSwapC.getLocation());
+                //Swap 1 and 1 with 2 and 2 respectively
+
+                if (swappableAandC && swappableBandD) {
+                    newFight1 = new Fight(needsSwapA, candidateSwapC);
+                    newFight2 = new Fight(needsSwapB, candidateSwapD);
+                }
+                //Swap 1 with 2 and 2 with 1.
+                else if (swappableAandD && swappableBandC) {
+                    newFight1 = new Fight(needsSwapA, candidateSwapD);
+                    newFight2 = new Fight(needsSwapB, candidateSwapC);
+                }
+                //prepare for removal.
+                if(newFight1 != null && newFight2 != null) {
+                    //candidateFightForSwap = fight;
+                    System.out.println("Swapping for " + fightFromSamePark.toString() + " and " + fight.toString());
+                }
+
+                //perfrorm the swap.
+                if(newFight1 != null && newFight2 != null){
+                    System.out.println("Removing " + fightFromSamePark.toString() + " and " + fight.toString());
+                    generatedFights.remove(fightFromSamePark);
+                    generatedFights.remove(fight);
+                    System.out.println("Generated fights after removal: " + generatedFights.size());
+                    generatedFights.add(newFight1);
+                    generatedFights.add(newFight2);
+                    System.out.println("Generated fights after adding: " + generatedFights.size());
+                    return true;
+                }
+
+            }
+
+
+        }
+        System.out.println("We can't redistribute anymore.");
+        return false;
+    }
+
 
     //generates the list of registered fights.
     public void generateFights() {
