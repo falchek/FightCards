@@ -1,5 +1,7 @@
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 
@@ -20,7 +22,14 @@ public class FightCardPdfExport {
 
 
     public FightCardPdfExport(List<FightCard> fightCards){
+        //sort this bad boys in alphabetical order
+        Collections.sort(fightCards, new Comparator<FightCard>() {
+            public int compare(FightCard f1, FightCard f2) {
+                return f1.getOwner().getName().compareTo(f2.getOwner().getName());
+            }
+        });
         this.fightCards = fightCards;
+
     }
 
 
@@ -30,7 +39,6 @@ public class FightCardPdfExport {
         PdfWriter.getInstance(document, new FileOutputStream(FILENAME));
 
         document.open();
-
         for(FightCard card : fightCards) {
             document.add(getNameHeader(card.getOwner().getName()));
 
@@ -41,6 +49,12 @@ public class FightCardPdfExport {
             document.add(Chunk.NEWLINE);
             document.add(createOpponentsTable(card));
             document.newPage();
+        }
+
+        // Add tickets:
+
+        for (FightCard card : fightCards) {
+            document.add(createTickets(card));
         }
         document.close();
 
@@ -55,6 +69,14 @@ public class FightCardPdfExport {
         name.add(fighterName);
 
         return name;
+    }
+
+    public PdfPTable createTickets(FightCard card){
+        PdfPTable table = new PdfPTable(5);
+        for(int i = 0; i < 10; i++) {
+            table.addCell(card.getOwner().getName());
+        }
+        return table;
     }
 
     public PdfPTable createOpponentsTable(FightCard card) {
@@ -87,9 +109,9 @@ public class FightCardPdfExport {
         com.lowagie.text.List list = new com.lowagie.text.List();
         list.setSymbolIndent(12);
         list.setListSymbol("\u2022");
-        list.add("  Find each person on your list, and fight them 10 times.  Don’t worry about score!");
+        list.add("  Find each person on your list, and fight them 10 times.  Don’t worry about the score!");
         list.add("  Sign each other’s cards.  Be sure to help your partner find anyone they have yet to fight. ");
-        list.add("  Turn this card to Tato or Troll by 6pm Saturday");
+        list.add("  Turn this card to Tato or Troll by 5pm Saturday. ");
         listWrapper.add(list);
         listWrapper.setIndentationLeft(12.0f);
 
@@ -106,7 +128,7 @@ public class FightCardPdfExport {
         Paragraph instructions = new Paragraph();
         Font f = new Font(Font.HELVETICA, 12.0F, Font.ITALIC);
         instructions.setFont(f);
-        instructions.add("For each signature, you will get one ticket in the WLS card raffle up to 10 tickets.");
+        instructions.add("For each signature, you will get one ticket in the prize raffle for up to 10 tickets.");
         return instructions;
     }
 

@@ -5,7 +5,7 @@ import java.util.List;
 
 public class TestDriver {
 
-    public static final int FIGHTS_PER_FIGHTER = 12; // update to 10.
+    public static final int FIGHTS_PER_FIGHTER = 14; // update to 10.
 
     public static void main (String[] args){
 
