@@ -9,12 +9,15 @@ public class Fighter implements Cloneable{
     private String name;
     @CsvField(pos = 2)
     private String location;
+    @CsvField(pos = 3)
+    private String team;
 
     //copy constructor I guess.
     public Fighter(Fighter fighter) {
         this.ID = fighter.getID();
         this.name = fighter.getName();
         this.location = fighter.getLocation();
+        this.team = fighter.getTeam(); 
     }
 
     public Fighter() {
@@ -48,5 +51,13 @@ public class Fighter implements Cloneable{
     @Override
     protected Object clone() throws CloneNotSupportedException {
         return super.clone();
+    }
+
+    public String getTeam() {
+        return team;
+    }
+
+    public void setTeam(String team) {
+        this.team = team;
     }
 }
