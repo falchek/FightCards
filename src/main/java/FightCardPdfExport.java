@@ -17,7 +17,9 @@ import com.lowagie.text.pdf.PdfWriter;
 //Writes a fight card to pdf.
 public class FightCardPdfExport {
 
+    public static final String SRC = "src/main/resources/";
     public static final String FILENAME = "src/main/resources/FightCards.pdf";
+    public static final String DOJO_LOG0_SRC = "src/main/resources/cgdojo.jpeg";
     private List<FightCard> fightCards;
 
 
@@ -40,9 +42,17 @@ public class FightCardPdfExport {
 
         document.open();
         for(FightCard card : fightCards) {
+            document.add(createBlankReturn());
+            document.add(createBlankReturn());
             document.add(getNameHeader(card.getOwner().getName()));
 
-
+            document.add(createDojoLogo());
+            Image teamImage = createTeamImage(card);
+            if (teamImage != null) {
+                document.add(teamImage);
+            }
+            document.add(createBlankReturn());
+            document.add(createBlankReturn());
             document.add(createInstructionsHeader());
             document.add(createListOfInstructions());
             document.add(createWinInstructionsLine());
@@ -58,6 +68,31 @@ public class FightCardPdfExport {
         }
         document.close();
 
+    }
+
+    public Image createTeamImage(FightCard card) {
+        String team = card.getOwner().getTeam();
+        if(team != null) {
+            try {
+                Image image = Image.getInstance(SRC + team.toLowerCase() + ".png");
+                image.setAbsolutePosition(PageSize.A4.getWidth() - image.getScaledWidth() - 10 , PageSize.A4.getHeight() - image.getScaledHeight() - 5);
+                return image;
+
+            } catch (Exception e) {
+            }
+
+        }
+        return null;
+    }
+
+    public Image createDojoLogo() {
+        try {
+            Image image = Image.getInstance(DOJO_LOG0_SRC);
+            image.setAbsolutePosition(10, PageSize.A4.getHeight() - image.getScaledHeight() - 5);
+            return image;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public Paragraph getNameHeader(String fighterName) {
@@ -130,6 +165,12 @@ public class FightCardPdfExport {
         instructions.setFont(f);
         instructions.add("For each signature, you will get one ticket in the prize raffle for up to 10 tickets.");
         return instructions;
+    }
+
+    public Paragraph createBlankReturn() {
+        Paragraph blankReturn = new Paragraph();
+        blankReturn.add("\n");
+        return blankReturn;
     }
 
 

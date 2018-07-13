@@ -17,7 +17,7 @@ public class Fighter implements Cloneable{
         this.ID = fighter.getID();
         this.name = fighter.getName();
         this.location = fighter.getLocation();
-        this.team = fighter.getTeam(); 
+        this.team = fighter.getTeam();
     }
 
     public Fighter() {

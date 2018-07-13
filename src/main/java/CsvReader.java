@@ -24,6 +24,9 @@ public class CsvReader {
                 Fighter fighter = new Fighter();
                 fighter.setName(dataLine.get(0));
                 fighter.setLocation(dataLine.get(1));
+                if(dataLine.size() > 2) {
+                    fighter.setTeam(dataLine.get(2));
+                }
                 fightersListFromFile.add(fighter);
             }
 
